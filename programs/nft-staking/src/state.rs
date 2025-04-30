@@ -1,7 +1,8 @@
 use {
+    crate::error::*,
+    anchor_attribute_account::account,
     anchor_lang::{prelude::*, InitSpace},
     solana_program::pubkey::Pubkey,
-    crate::error::*
 };
 
 pub const REWARD_VAULT_AUTHORITY_SEED: &str = "reward_vault_authority";
@@ -43,11 +44,10 @@ pub struct StakingCfg {
     pub total_reward_based_on_staked_time: u64,
     /// The staked amount
     pub staked_amount: u64,
-    /// The minimum stake period to be eligible for reward 
+    /// The minimum stake period to be eligible for reward
     pub minimum_period: i64,
     /// The updated times
     pub updated_times: u32,
-    
 }
 
 #[account]
@@ -81,14 +81,13 @@ pub struct StakedRecord {
 }
 
 impl StakingCfg {
-    
     pub fn init(
         bump: u8,
         admin: Pubkey,
         group_mint: Pubkey,
         reward_token_mint: Pubkey,
         reward_vault_authority_bump: u8,
-        nft_vault_authority_bump: u8,   
+        nft_vault_authority_bump: u8,
         max_staked_amount: u64,
         staked_start_time: i64,
         staked_end_time: i64,
@@ -96,7 +95,7 @@ impl StakingCfg {
         latest_reward_time: i64,
         minimum_period: i64,
     ) -> Self {
-        Self{
+        Self {
             is_active: true,
             bump,
             admin,
@@ -118,22 +117,34 @@ impl StakingCfg {
     }
 
     pub fn decrease_staked_amount(&mut self, amount: u64) -> Result<()> {
-        self.staked_amount = self.staked_amount.checked_sub(amount).ok_or(StakingError::ProgramSubError)?;
+        self.staked_amount = self
+            .staked_amount
+            .checked_sub(amount)
+            .ok_or(StakingError::ProgramSubError)?;
         Ok(())
     }
 
     pub fn increase_staked_amount(&mut self, amount: u64) -> Result<()> {
-        self.staked_amount = self.staked_amount.checked_add(amount).ok_or(StakingError::ProgramAddError)?;
+        self.staked_amount = self
+            .staked_amount
+            .checked_add(amount)
+            .ok_or(StakingError::ProgramAddError)?;
         Ok(())
     }
 
     pub fn increase_total_reward_based_on_staked_time(&mut self, reward: u64) -> Result<()> {
-        self.total_reward_based_on_staked_time = self.total_reward_based_on_staked_time.checked_add(reward).ok_or(StakingError::ProgramAddError)?;
+        self.total_reward_based_on_staked_time = self
+            .total_reward_based_on_staked_time
+            .checked_add(reward)
+            .ok_or(StakingError::ProgramAddError)?;
         Ok(())
     }
 
     pub fn decrease_total_reward_based_on_staked_time(&mut self, reward: u64) -> Result<()> {
-        self.total_reward_based_on_staked_time = self.total_reward_based_on_staked_time.checked_sub(reward).ok_or(StakingError::ProgramSubError)?;
+        self.total_reward_based_on_staked_time = self
+            .total_reward_based_on_staked_time
+            .checked_sub(reward)
+            .ok_or(StakingError::ProgramSubError)?;
         Ok(())
     }
 
@@ -146,12 +157,7 @@ impl StakingCfg {
 }
 
 impl CfgUpdateRecord {
-    pub fn init(
-        bump: u8,
-        order_id: u32,
-        reward: u64,
-        updated_at: i64,
-    ) -> Self {
+    pub fn init(bump: u8, order_id: u32, reward: u64, updated_at: i64) -> Self {
         Self {
             bump,
             order_id,
@@ -159,9 +165,7 @@ impl CfgUpdateRecord {
             updated_at,
         }
     }
-
 }
-
 
 impl StakedRecord {
     pub fn init(
@@ -181,7 +185,11 @@ impl StakedRecord {
         }
     }
 
-    pub fn refresh_for_withdraw(&mut self, reward_based_on_staked_time: u64, withdraw_at: i64) -> Result<()> {
+    pub fn refresh_for_withdraw(
+        &mut self,
+        reward_based_on_staked_time: u64,
+        withdraw_at: i64,
+    ) -> Result<()> {
         self.reward_based_on_staked_time = reward_based_on_staked_time;
         self.withdraw_at = withdraw_at;
         Ok(())
